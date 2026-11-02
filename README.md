@@ -1,39 +1,75 @@
-# Knowledge Catalog Labs (formerly Dataplex Labs)
+# Data Lineage Use-Cases Documentation
+This repository contains the code required to set up the environments described in Lineage Use-Case based documentation. Use this code to follow along each use-case.
 
-## About
-This repository features self-contained, hands-on-labs with detailed and step-by-step instructions and associated collateral (data, code, configuration, terraform etc) that demystify features and integration points of Dataplex - GCP's Data Governance and Management Service.
+## Prerequisites
+*   A Google Cloud Project with Billing enabled.
+*   Google Cloud CLI (`gcloud`, `bq`) installed and configured (or use Cloud Shell).
+*   Sufficient IAM permissions in your project (e.g., BigQuery Admin, Data Lineage Viewer).
+*   The following APIs must be enabled in your project:
+    *   BigQuery API
+    *   BigQuery Data Transfer API
+    *   Data Lineage API
 
-## Labs
+You can enable APIs via the console or `gcloud services enable <service.googleapis.com>`.
 
-| # | Category | Lab | Lab summary | Author |
-| -- | :-- | :--- | :--- |:--- |
-| 1. |Product-centric | [Dataplex Quickstart Labs](dataplex-quickstart-labs)| Lab series showcasing Dataplex features for a learning experience. <br><br>*If you dont know Dataplex and want to learn the product, with step by step instructions for every feature, as and when they are released* <br><br>| Anagha Khanolkar|
-| 2. |Solution-centric | [Dataplex Data Mesh Lab 1 - Banking](data-mesh-banking-labs) | Lab series showcasing Data Mesh architecture powered by Dataplex based on a Banking usecase. <br><br> *A L300 lab for architecting and implementing Data mesh using Dataplex and other core GCP services* <br><br>| Mansi Maharana |
-| 3. |Product-centric | [Lineage Use-Case based documentation](lineage-uses-cases-documentation) | Code accompanying the Lineage Use-Case based documentation, demonstrating practical applications of Data Lineage within Dataplex. <br><br>*Covers common use cases like impact analysis, root cause analysis, and PII tracking, using realistic scenarios and datasets. <br><br>| Ines Cardoso |
 
-## Contributing
-See the contributing [instructions](CONTRIBUTING.md) to get started contributing.
+Moreover, in order to set the pre-built state in your google cloud console for the various lineage use-cases, you need to follow the steps in this section related to: 
+* Create a  GitHub Personal Access Token (PAT) and add it to Secret Manager
+* Create a Dataform repository connected 
 
-## License
-All solutions within this repository are provided under the Apache 2.0 license. Please see the LICENSE file for more detailed terms and conditions.
+### 1. Create a  GitHub Personal Access Token (PAT) and add it to Secret Manager
 
-## Disclaimer
-This repository and its contents are not an official Google Product.
+#### Step 1: Create a GitHub Token (PAT)
+In order to connect  Google Cloud, you need a "key" from GitHub. Follow this steps to create one: 
 
-## Issues
-Share you feedback, ideas, by logging [issues](../../issues).
+* In GitHub, go to Settings -> Developer Settings -> Personal Access Tokens -> Tokens (classic).
+* Click Generate new token (classic).
+* Select Name: "Dataform-Client-Access".
+* Expiration: Select "No expiration" (or a long duration).
+* Scopes: Check the box for repo (this allows Dataform to see your code).
+* Copy the Token: Save it somewhere safe. You will never see it again!
 
-## Release History
+#### Step 2: Save the Token in Secret Manager
+Now, you need to store that key securely in Google Cloud.
 
-| # | Release Summary | Date |  Contributor |
-| -- | :--- | :--- |:--- |
-| 1. |Initial release of quickstart labs series | 20230303 | Anagha Khanolkar|
-| 2. |Initial release of data mesh banking labs| 20230306 | Mansi Maharana|
-| 3. |[Quickstart Labs] Additional modules (AutoDQ) to quickstart labs series | 20230320 | Anagha Khanolkar|
-| 4. |[Quickstart Labs] Additional modules (DQ tasks) to quickstart labs series | 20230321 | Anagha Khanolkar|
-| 5. |[Quickstart Labs] Additional modules (DQ tasks) to quickstart labs series | 20230328 | Anagha Khanolkar|
-| 6. |[Quickstart Labs] Module on Biglake | 20230411 | Anagha Khanolkar|
-| 7. |[Quickstart Labs] Module on Data Profiling redone from BQ UI | 20230921 | Jay O' Leary|
-| 8. |[Quickstart Labs] New module for Dataproc Lineage | 20230921 | Anagha Khanolkar|
-| 9. |[Quickstart Labs] Removed references to Explore | 20230921 | Anagha Khanolkar|
-| 10. |Initial release of Lineage Use-Case based documentation | 20260323 | Ines Cardoso|
+* In the Google Cloud Console, search for Secret Manager.
+* Click Create Secret.
+* Give a name Name, such as: github-token.
+* Secret Value: Paste the token you just copied from GitHub.
+* Click Create.
+
+#### Step 3: Give Dataform Permission to Read the Secret
+By default, Dataform isn't allowed to see your secrets. You have to give it "Permission to peek."
+
+* In Google Cloud's Secret Manager click on the github-token secret you just created.
+* Go to the Permissions tab.
+* Click Grant Access and add the Dataform Service Acount. Note: This usually looks like: service-[PROJECT_NUMBER]@gcp-sa-dataform.iam.gserviceaccount.com. As role select 'Select Secret Manager Secret Accessor.'
+* Click Save.
+
+
+### 2. Connect Dataform to the Github repository
+
+In order to have the pre-built state necessary for each use-case, you need to follow the steps of this section:
+
+* Fork this github repository 
+* In Google Cloud's dataform page, select 'Create Repository', fill the 'Repository ID' and 'Region' Fields, and click on 'Create'
+* In Dataform, go to your Repository Settings.
+* Click Connect with Git and fill the fields: 
+  * Fill the Remote Git URL with the yout forked repository URL.
+  * Choose Default Branch: main (or master).
+  * Secret: Select the github-token secret you just created from the dropdown.
+  * Click Link.
+
+After these steps you will be able to see github's code in your dataform repository.
+
+## How to run each use case
+
+To run the defined code for each use case:
+1. Ensure that you have changed 'defaultProject' to your GCP PROJECT NAME in 'workflow_settings.yaml'
+2. With the repository code open in datafrom, click Start Execution -> Actions -> Multiple Actions.
+3. Choose to run a selection of tags.
+   * For use case 'Impact Analysis' you will choose the tag 'impact-analysis'
+   * For use case 'Optimize Costs' you will choose the tag 'optimize-costs'
+   * For use case 'PII Leakage' you will choose the tag 'pii-leakage'
+4. Click Start Execution.
+
